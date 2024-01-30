@@ -24,6 +24,7 @@ defmodule Alipay do
   """
 
   @type client :: module()
+  @type response :: Tesla.Env.result()
   @type app_id :: String.t()
   @type pem_file ::
           {:binary, binary} | {:file, Path.t()} | {:app_dir, Application.app(), Path.t()}
@@ -36,6 +37,7 @@ defmodule Alipay do
           requester: module,
           sandbox?: sandbox?
         ]
+  @type body :: Enumerable.t()
 
   @doc false
   defmacro __using__(options \\ []) do
