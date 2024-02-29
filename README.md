@@ -9,7 +9,7 @@ You can be installed by adding `alipay` to your list of dependencies in `mix.exs
 ```elixir
 def deps do
   [
-    {:alipay, "~> 0.1.0", hex: :alipay_sdk}
+    {:alipay, "~> 0.1", hex: :alipay_sdk}
   ]
 end
 ```

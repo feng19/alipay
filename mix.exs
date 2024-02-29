@@ -1,7 +1,7 @@
 defmodule Alipay.MixProject do
   use Mix.Project
 
-  @version "0.1.1"
+  @version "0.1.2"
   @source_url "https://github.com/feng19/alipay"
 
   def project do
@@ -42,6 +42,7 @@ defmodule Alipay.MixProject do
       ],
       main: "readme",
       source_url: @source_url,
+      source_ref: "master",
       formatters: ["html"],
       formatter_opts: [gfm: true]
     ]
