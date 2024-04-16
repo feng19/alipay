@@ -1,7 +1,7 @@
 defmodule Alipay.MixProject do
   use Mix.Project
 
-  @version "0.1.3"
+  @version "0.2.0"
   @source_url "https://github.com/feng19/alipay"
 
   def project do
@@ -30,6 +30,7 @@ defmodule Alipay.MixProject do
       {:tesla, "~> 1.4"},
       {:finch, "~> 0.9"},
       {:jason, "~> 1.2"},
+      {:plug, "~> 1.11", optional: true},
       {:ex_doc, ">= 0.0.0", only: [:docs, :dev], runtime: false}
     ]
   end

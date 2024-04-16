@@ -56,11 +56,28 @@ defmodule Alipay.Crypto do
   def verify(signature, timestamp, nonce, body, public_key) do
     case Base.decode64(signature, padding: false) do
       {:ok, signature} ->
-        IO.inspect(%{signature: signature, timestamp: timestamp, nonce: nonce, body: body})
         :public_key.verify("#{timestamp}\n#{nonce}\n#{body}\n", :sha256, signature, public_key)
 
       _ ->
         false
+    end
+  end
+
+  def verify_callback(params, public_key) do
+    with {"RSA2", params} <- Map.pop(params, "sign_type"),
+         {sign, params} when not is_nil(sign) <- Map.pop(params, "sign"),
+         {:ok, signature} <- Base.decode64(sign, padding: false) do
+      params
+      |> Enum.sort_by(&elem(&1, 0))
+      |> Enum.map(fn
+        {k, v} when is_map(v) -> "#{k}=#{Jason.encode!(v)}"
+        {k, v} -> "#{k}=#{v}"
+      end)
+      |> Enum.join("&")
+      |> :public_key.verify(:sha256, signature, public_key)
+    else
+      # bad_request
+      _ -> false
     end
   end
 end
