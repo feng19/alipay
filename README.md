@@ -16,7 +16,7 @@ end
 
 ## 快速测试
 
-微信提供申请测试号，用于快速测试
+支付宝支持沙箱，用于快速测试
 
 - [沙箱应用](https://open.alipay.com/develop/sandbox/app)
 
