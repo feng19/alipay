@@ -20,7 +20,8 @@ defmodule Alipay.ClientBuilder do
   end
 
   defp check_options!(options, client, caller) do
-    options = options |> Macro.prewalk(&Macro.expand(&1, caller)) |> Map.new()
+    options = Macro.prewalk(options, &Macro.expand(&1, caller))
+    options = Keyword.merge([sandbox?: false], options) |> Map.new()
 
     unless Map.get(options, :app_id) |> is_binary() do
       raise ArgumentError, "Please set app_id option for #{inspect(client)}"
