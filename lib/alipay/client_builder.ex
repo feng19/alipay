@@ -15,8 +15,6 @@ defmodule Alipay.ClientBuilder do
       @doc false
       def private_key, do: unquote(options.private_key)
       @doc false
-      def public_key, do: unquote(options.public_key)
-      @doc false
       def callback_public_key, do: unquote(options.callback_public_key)
       def sandbox?, do: unquote(options.sandbox? || false)
     end
@@ -31,7 +29,6 @@ defmodule Alipay.ClientBuilder do
     end
 
     private_key = transform_pem_file(client, options, :private_key)
-    public_key = transform_pem_file(client, options, :public_key)
 
     callback_public_key =
       if options[:callback_public_key] do
@@ -42,7 +39,6 @@ defmodule Alipay.ClientBuilder do
 
     options
     |> Map.put(:private_key, Macro.escape(private_key))
-    |> Map.put(:public_key, Macro.escape(public_key))
     |> Map.put(:callback_public_key, Macro.escape(callback_public_key))
   end
 

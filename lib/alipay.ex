@@ -11,8 +11,7 @@ defmodule Alipay do
         use Alipay,
           app_id: "app_id",
           private_key: {:file, "private_key.pem"},
-          public_key: {:file, "public_key.pem"},
-          callback_public_key: {:file, "public_key.pem"}
+          callback_public_key: {:file, "alipay_public_key.pem"}
       end
 
   ## 参数说明
@@ -34,7 +33,6 @@ defmodule Alipay do
   @type options :: [
           app_id: app_id,
           private_key: pem_file,
-          public_key: pem_file,
           callback_public_key: pem_file,
           requester: module,
           sandbox?: sandbox?
