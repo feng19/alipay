@@ -1,5 +1,17 @@
 defmodule Alipay.Crypto do
-  @moduledoc false
+  @moduledoc """
+  加解密模块
+
+  ## For V2 Apis
+  - [接口加签方式说明](https://opendocs.alipay.com/common/02kf5p)
+  - [签名规则](https://opendocs.alipay.com/common/057k53)
+  - [验签规则](https://opendocs.alipay.com/common/02mse7)
+
+  ## For V3 Apis
+  - [接口加签方式说明](https://opendocs.alipay.com/open-v3/05419m)
+  - [签名规则](https://opendocs.alipay.com/open-v3/054q58)
+  - [验签规则](https://opendocs.alipay.com/open-v3/054d0z)
+  """
 
   def v2_sign(params, private_key) do
     string =

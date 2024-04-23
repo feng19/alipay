@@ -12,8 +12,11 @@ defmodule Alipay.ClientBuilder do
       @spec post(url :: binary, body :: any, opts :: keyword) :: Alipay.response()
       def post(url, body, opts \\ []), do: unquote(requester).post(__MODULE__, url, body, opts)
       def app_id, do: unquote(options.app_id)
+      @doc false
       def private_key, do: unquote(options.private_key)
+      @doc false
       def public_key, do: unquote(options.public_key)
+      @doc false
       def callback_public_key, do: unquote(options.callback_public_key)
       def sandbox?, do: unquote(options.sandbox? || false)
     end
