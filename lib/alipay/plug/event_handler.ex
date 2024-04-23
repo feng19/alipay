@@ -70,8 +70,16 @@ if Code.ensure_loaded?(Plug) do
 
       client =
         case Map.fetch(opts, :client) do
-          {:ok, client} -> client
-          _ -> raise ArgumentError, "please set :client when using #{inspect(__MODULE__)}"
+          {:ok, client} ->
+            if client.callback_public_key() != nil do
+              client
+            else
+              raise ArgumentError,
+                    "please set :callback_public_key when defining #{inspect(client)}"
+            end
+
+          _ ->
+            raise ArgumentError, "please set :client when using #{inspect(__MODULE__)}"
         end
 
       %{event_handler: event_handler, client: client}
@@ -82,7 +90,7 @@ if Code.ensure_loaded?(Plug) do
           client: client,
           event_handler: event_handler
         }) do
-      with true <- Crypto.verify_callback(params, client.public_key()) do
+      with true <- Crypto.verify_callback(params, client.callback_public_key()) do
         try do
           event_handler.(conn, client)
         rescue

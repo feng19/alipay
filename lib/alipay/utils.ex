@@ -1,8 +1,6 @@
 defmodule Alipay.Utils do
   @moduledoc false
 
-  alias Tesla.Middleware
-
   @spec now_unix :: integer
   def now_unix, do: System.system_time(:second)
   @spec now_unix_mill :: integer
@@ -31,23 +29,4 @@ defmodule Alipay.Utils do
   end
 
   def expand_file(_path), do: {:error, :bad_arg}
-
-  def client(client) do
-    base_url =
-      if client.sandbox?() do
-        "https://openapi-sandbox.dl.alipaydev.com"
-      else
-        "https://openapi.alipay.com"
-      end
-
-    Tesla.client(
-      [
-        {Middleware.BaseUrl, base_url},
-        {Alipay.Middleware.Authorization, client},
-        {Alipay.Middleware.VerifySignature, client},
-        Middleware.Logger
-      ],
-      {Tesla.Adapter.Finch, [name: Alipay.Finch, pool_timeout: 5_000, receive_timeout: 5_000]}
-    )
-  end
 end

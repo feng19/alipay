@@ -4,22 +4,17 @@ defmodule Alipay.ClientBuilder do
   defmacro __using__(options \\ []) do
     client = __CALLER__.module
     options = check_options!(options, client, __CALLER__)
-    requester = Map.get(options, :requester, Alipay.Utils)
+    requester = Map.get(options, :requester, Alipay.Requester)
 
     quote do
-      @spec get(url :: binary, opts :: keyword) :: WeChat.response()
-      def get(url \\ "/gateway.do", opts \\ []) do
-        unquote(requester).client(__MODULE__) |> Tesla.get(url, opts)
-      end
-
-      @spec post(url :: binary, body :: any, opts :: keyword) :: WeChat.response()
-      def post(url \\ "/gateway.do", body, opts \\ []) do
-        unquote(requester).client(__MODULE__) |> Tesla.post(url, body, opts)
-      end
-
+      @spec get(url :: binary, opts :: keyword) :: Alipay.response()
+      def get(url, opts \\ []), do: unquote(requester).get(__MODULE__, url, opts)
+      @spec post(url :: binary, body :: any, opts :: keyword) :: Alipay.response()
+      def post(url, body, opts \\ []), do: unquote(requester).post(__MODULE__, url, body, opts)
       def app_id, do: unquote(options.app_id)
       def private_key, do: unquote(options.private_key)
       def public_key, do: unquote(options.public_key)
+      def callback_public_key, do: unquote(options.callback_public_key)
       def sandbox?, do: unquote(options.sandbox? || false)
     end
   end
@@ -34,9 +29,17 @@ defmodule Alipay.ClientBuilder do
     private_key = transform_pem_file(client, options, :private_key)
     public_key = transform_pem_file(client, options, :public_key)
 
+    callback_public_key =
+      if options[:callback_public_key] do
+        transform_pem_file(client, options, :callback_public_key)
+      else
+        nil
+      end
+
     options
     |> Map.put(:private_key, Macro.escape(private_key))
     |> Map.put(:public_key, Macro.escape(public_key))
+    |> Map.put(:callback_public_key, Macro.escape(callback_public_key))
   end
 
   defp transform_pem_file(client, options, key) do
