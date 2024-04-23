@@ -50,7 +50,7 @@ defmodule Alipay.Requester do
     )
   end
 
-  def request_should_retry({:ok, %{status: status}}) when status in [400, 500], do: true
+  def request_should_retry({:ok, %{status: 500}}), do: true
   def request_should_retry({:ok, _}), do: false
   def request_should_retry({:error, _}), do: true
 end
