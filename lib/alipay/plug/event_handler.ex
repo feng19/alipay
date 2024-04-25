@@ -3,7 +3,7 @@ if Code.ensure_loaded?(Plug) do
     @moduledoc """
     异步通知处理器
 
-    [异步通知说明](https://opendocs.alipay.com/open-v3/05pf4k?pathHash=01c6e762)
+    [异步通知说明](https://opendocs.alipay.com/open-v3/05pf4k)
 
     - 在进行异步通知交互时，如果支付宝收到的应答不是 `success` ，支付宝会认为通知失败，会通过一定的策略定期重新发起通知。
     重试逻辑为：当未收到 `success` 时立即尝试重发 3 次通知，若 3 次仍不成功，则后续通知的间隔频率为：4m、10m、10m、1h、2h、6h、15h。
@@ -15,14 +15,34 @@ if Code.ensure_loaded?(Plug) do
 
     将下面的代码加到 `router` 里面：
 
+    - 单一应用的情况：
+
         forward "/ali/event", #{inspect(__MODULE__)},
           client: YourApp.AppCodeName,
-          event_handler: &YourModule.handle_event/3
+          event_handler: &YourModule.handle_event/2
+
+    - 多个应用的情况：
+
+      请将入口路径设置为如下格式: `/*xxx/:app`
+
+          scope "/ali/event/:app" do
+            post "/", #{inspect(__MODULE__)},
+              client: &YourModule.get_client_by_app/1,
+              event_handler: &YourModule.handle_event/2
+          end
+
+      before phoenix 1.17:
+
+          scope "/ali/event/:app" do
+            forward "/", #{inspect(__MODULE__)},
+              client: &YourModule.get_client_by_app/1,
+              event_handler: &YourModule.handle_event/2
+          end
 
     ## Options
 
     - `event_handler`: 必填, [定义](`t:event_handler/0`)
-    - `client`: 必填, [定义](`t:Alipay.client/0`)
+    - `client`: 必填, [Client](`t:Alipay.client/0`) | [function](`t:get_client_fun/0`)
     """
 
     import Plug.Conn
@@ -50,6 +70,8 @@ if Code.ensure_loaded?(Plug) do
             | Plug.Conn.t()
     @typedoc "事件处理回调函数"
     @type event_handler :: (Plug.Conn.t(), Alipay.client() -> event_handler_return)
+    @typedoc "通过 app 获取 client 函数"
+    @type get_client_fun :: (app :: String.t() -> Alipay.client() | nil)
 
     @doc false
     def init(opts) do
@@ -68,21 +90,21 @@ if Code.ensure_loaded?(Plug) do
                   "the :event_handler must arg 2 function when using #{inspect(__MODULE__)}"
         end
 
-      client =
-        case Map.fetch(opts, :client) do
-          {:ok, client} ->
-            if client.callback_public_key() != nil do
-              client
-            else
-              raise ArgumentError,
-                    "please set :callback_public_key when defining #{inspect(client)}"
-            end
+      case Map.fetch(opts, :client) do
+        {:ok, client} when is_atom(client) ->
+          if client.callback_public_key() != nil do
+            %{event_handler: event_handler, client: client}
+          else
+            raise ArgumentError,
+                  "please set :callback_public_key when defining #{inspect(client)}"
+          end
 
-          _ ->
-            raise ArgumentError, "please set :client when using #{inspect(__MODULE__)}"
-        end
+        {:ok, get_client} when is_function(get_client, 1) ->
+          %{event_handler: event_handler, get_client: get_client}
 
-      %{event_handler: event_handler, client: client}
+        _ ->
+          raise ArgumentError, "please set :client when using #{inspect(__MODULE__)}"
+      end
     end
 
     @doc false
@@ -90,7 +112,7 @@ if Code.ensure_loaded?(Plug) do
           client: client,
           event_handler: event_handler
         }) do
-      with true <- Crypto.verify_callback(params, client.callback_public_key()) do
+      if Crypto.verify_callback(params, client.callback_public_key()) do
         try do
           event_handler.(conn, client)
         rescue
@@ -120,9 +142,21 @@ if Code.ensure_loaded?(Plug) do
             conn
         end
       else
-        _ -> send_resp(conn, 400, "Bad Request")
+        send_resp(conn, 400, "Bad Request")
       end
       |> halt()
+    end
+
+    def call(%{method: "POST", path_params: path_params} = conn, %{
+          get_client: get_client,
+          event_handler: event_handler
+        }) do
+      with app <- path_params["app"],
+           client when client != nil <- get_client.(app) do
+        call(conn, %{client: client, event_handler: event_handler})
+      else
+        _ -> send_resp(conn, 400, "Bad Request") |> halt()
+      end
     end
 
     def call(conn, _opts) do
