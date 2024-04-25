@@ -108,7 +108,7 @@ if Code.ensure_loaded?(Plug) do
     end
 
     @doc false
-    def call(%{method: "POST", params: params} = conn, %{
+    def call(%{method: "POST", body_params: params} = conn, %{
           client: client,
           event_handler: event_handler
         }) do
