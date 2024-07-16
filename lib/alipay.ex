@@ -38,6 +38,7 @@ defmodule Alipay do
           sandbox?: sandbox?
         ]
   @type body :: Enumerable.t()
+  @type queries :: Keyword.t()
 
   @doc false
   defmacro __using__(options \\ []) do

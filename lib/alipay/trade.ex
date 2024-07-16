@@ -108,8 +108,8 @@ defmodule Alipay.Trade do
 
   为方便商户快速查账，支持商户通过本接口获取商户离线账单下载地址
   """
-  @spec fetch_bill_download_url(Alipay.client(), Alipay.body()) :: Alipay.response()
-  def fetch_bill_download_url(client, body) do
-    client.post("/v3/alipay/data/dataservice/bill/downloadurl/query", body)
+  @spec fetch_bill_download_url(Alipay.client(), Alipay.queries()) :: Alipay.response()
+  def fetch_bill_download_url(client, queries) do
+    client.get("/v3/alipay/data/dataservice/bill/downloadurl/query", query: queries)
   end
 end

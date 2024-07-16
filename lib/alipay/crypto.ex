@@ -62,6 +62,10 @@ defmodule Alipay.Crypto do
 
   defp path_join_query(path, []), do: path
   defp path_join_query(path, ""), do: path
+
+  defp path_join_query(path, query) when is_list(query),
+    do: path <> "?" <> URI.encode_query(query)
+
   defp path_join_query(path, query), do: path <> "?" <> query
 
   # v3
