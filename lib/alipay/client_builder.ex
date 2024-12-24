@@ -17,6 +17,7 @@ defmodule Alipay.ClientBuilder do
       @doc false
       def callback_public_key, do: unquote(options.callback_public_key)
       def sandbox?, do: unquote(options.sandbox? || false)
+      unquote(gen_aes_key(options))
     end
   end
 
@@ -24,7 +25,7 @@ defmodule Alipay.ClientBuilder do
     options = Macro.prewalk(options, &Macro.expand(&1, caller))
     options = Keyword.merge([sandbox?: false], options) |> Map.new()
 
-    unless Map.get(options, :app_id) |> is_binary() do
+    if !(Map.get(options, :app_id) |> is_binary()) do
       raise ArgumentError, "Please set app_id option for #{inspect(client)}"
     end
 
@@ -87,4 +88,14 @@ defmodule Alipay.ClientBuilder do
   end
 
   def transform_pem_file(other), do: {:bad_arg, other}
+
+  defp gen_aes_key(options) do
+    if aes_key = options[:aes_key] do
+      aes_key = Base.decode64!(aes_key)
+
+      quote do
+        def aes_key, do: unquote(aes_key)
+      end
+    end
+  end
 end

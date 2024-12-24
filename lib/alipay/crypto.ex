@@ -13,6 +13,8 @@ defmodule Alipay.Crypto do
   - [验签规则](https://opendocs.alipay.com/open-v3/054d0z)
   """
 
+  @aes_block_size 16
+
   def v2_sign(params, private_key) do
     string =
       params
@@ -95,5 +97,30 @@ defmodule Alipay.Crypto do
       # bad_request
       _ -> false
     end
+  end
+
+  # https://opendocs.alipay.com/common/02mse3?pathHash=16b6b087
+  def decode_response(%{"encrypt_type" => "AES", "response" => response}, aes_key) do
+    response
+    |> Base.decode64!()
+    |> decrypt_with_aes_cbc(aes_key)
+    |> Jason.decode()
+  end
+
+  def decode_response(body, _aes_key), do: {:ok, body}
+
+  def encrypt_biz_content(content, aes_key) do
+    {:ok, encrypt_with_aes_cbc(content, aes_key)}
+  end
+
+  @compile {:inline, encrypt_with_aes_cbc: 2, decrypt_with_aes_cbc: 2}
+  defp encrypt_with_aes_cbc(plain_text, aes_key) do
+    iv = binary_part(aes_key, 0, @aes_block_size)
+    :crypto.crypto_one_time(:aes_256_cbc, aes_key, iv, plain_text, true)
+  end
+
+  defp decrypt_with_aes_cbc(cipher_text, aes_key) do
+    iv = binary_part(aes_key, 0, @aes_block_size)
+    :crypto.crypto_one_time(:aes_256_cbc, aes_key, iv, cipher_text, false)
   end
 end
